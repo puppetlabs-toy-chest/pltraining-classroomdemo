@@ -1,0 +1,28 @@
+{
+  "operatingsystem_support": [
+    {
+      "operatingsystem": "CentOS",
+      "operatingsystemrelease": [ "5.0", "6.0", "7.0" ]
+    }
+  ],
+  "requirements": [
+    {
+      "name": "pe",
+      "version_requirement": "3.7.x"
+    },
+    {
+      "name": "puppet",
+      "version_requirement": "3.x"
+    }
+  ],
+  "name": "pltraining-classroomdemo",
+  "version": "0.0.1",
+  "author": "pltraining",
+  "summary": "Just a collections of classroom demos",
+  "license": "Apache 2.0",
+  "source": "https://github.com/puppetlabs/pltraining-classroomdemo",
+  "project_page": "https://github.com/puppetlabs/pltraining-classroomdemo",
+  "issues_url": "https://github.com/puppetlabs/pltraining-classroomdemo/issues",
+  "description": "Important! This is not the module you are looking for\n    unless you are a trainer teaching Puppet Labs training courses!",
+  "dependencies": [ ]
+}
