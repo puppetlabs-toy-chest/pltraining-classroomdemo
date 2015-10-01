@@ -1,6 +1,7 @@
 class classroomdemo::aws (
-  $creator     = undef,
-  $key_pair    = undef,
+  $creator,
+  $key_pair,
+  $ensure      = present,
   $pe_version  = '2015.2.0',
   $pe_username = 'admin',
   $pe_password = 'puppetlabs',
@@ -9,13 +10,13 @@ class classroomdemo::aws (
 
   # Set up the VPC and network
   ec2_vpc { "${creator}-vpc":
-    ensure       => present,
+    ensure       => $ensure,
     region       => $aws_region,
     cidr_block   => '10.0.0.0/16',
   }
 
   ec2_vpc_subnet { "${creator}-subnet":
-    ensure            => present,
+    ensure            => $ensure,
     region            => $aws_region,
     vpc               => "${creator}-vpc",
     cidr_block        => '10.0.0.0/24',
@@ -23,13 +24,13 @@ class classroomdemo::aws (
   }
 
   ec2_vpc_internet_gateway { "${creator}-igw":
-    ensure => present,
+    ensure => $ensure,
     region => $aws_region,
     vpc    => "${creator}-vpc",
   }
 
   ec2_vpc_routetable { "${creator}-routes":
-    ensure => present,
+    ensure => $ensure,
     region => $aws_region,
     vpc    => "${creator}-vpc",
     routes => [
@@ -46,7 +47,7 @@ class classroomdemo::aws (
 
   # Security group (autorequires vpc as needed)
   ec2_securitygroup { "${creator}-sg":
-    ensure      => present,
+    ensure      => $ensure,
     region      => $aws_region,
     vpc         => "${creator}-vpc",
     description => 'Security group for VPC',
@@ -63,8 +64,8 @@ class classroomdemo::aws (
 
 
   # Set up the Puppet Master instance (autorequires security group and subjet as needed)
-  ec2_instance { 'puppet-master':
-    ensure                      => present,
+  ec2_instance { "${creator}-puppet-master":
+    ensure                      => $ensure,
     associate_public_ip_address => true,
     region                      => $aws_region,
     image_id                    => 'ami-e08efbd0',
@@ -74,6 +75,26 @@ class classroomdemo::aws (
     subnet                      => "${creator}-subnet",
     monitoring                  => 'true',
     user_data                   => template("${module_name}/aws/master-pe-userdata.erb"),
+  }
+
+  case $ensure {
+    present: {
+      # noop, the module autorequires dependencies properly for creation
+    }
+    absent: {
+      Ec2_instance["${creator}-puppet-master"]   -> Ec2_securitygroup["${creator}-sg"]
+      Ec2_instance["${creator}-puppet-master"]   -> Ec2_vpc_subnet["${creator}-subnet"]
+      Ec2_securitygroup["${creator}-sg"]         -> Ec2_vpc["${creator}-vpc"]
+      Ec2_vpc_subnet["${creator}-subnet"]        -> Ec2_vpc["${creator}-vpc"]
+      Ec2_vpc_subnet["${creator}-subnet"]        -> Ec2_vpc_routetable["${creator}-routes"]
+      Ec2_vpc_routetable["${creator}-routes"]    -> Ec2_vpc_internet_gateway["${creator}-igw"]
+      Ec2_vpc_routetable["${creator}-routes"]    -> Ec2_vpc["${creator}-vpc"]
+      Ec2_vpc_internet_gateway["${creator}-igw"] -> Ec2_vpc["${creator}-vpc"]
+    }
+    default: {
+      fail("Ensure must be one of absent, present. Got ${ensure}.")
+    }
+
   }
 
 }
