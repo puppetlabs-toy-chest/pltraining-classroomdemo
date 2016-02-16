@@ -8,6 +8,18 @@ class classroomdemo::aws (
   $aws_region  = 'us-west-2',
 ) {
 
+  # shamelessly stolen from https://github.com/waratek/vagrant-boxes/blob/80e131e0c378d1e79eab89ebd3dcb8c4b9c1eb13/packer/aws-rhel6-HVM/Vagrantfile
+  $aws_ami = $aws_region ? {
+    'us-east-1'      => 'ami-5b697332',
+    'us-west-1'      => 'ami-5cdce419',
+    'us-west-2'      => 'ami-e08efbd0',
+    'eu-west-1'      => 'ami-af6faad8',
+    'ap-southeast-1' => 'ami-dcbeed8e',
+    'ap-southeast-2' => 'ami-452eb67f',
+    'ap-northeast-1' => 'ami-53641e52',
+    'sa-east-1'      => 'ami-5fc76a42',
+  }
+
   # Set up the VPC and network
   ec2_vpc { "${creator}-vpc":
     ensure       => $ensure,
@@ -68,7 +80,7 @@ class classroomdemo::aws (
     ensure                      => $ensure,
     associate_public_ip_address => true,
     region                      => $aws_region,
-    image_id                    => 'ami-e08efbd0',
+    image_id                    => $aws_ami,
     instance_type               => 'm3.medium',
     key_name                    => $key_pair,
     security_groups             => ["${creator}-sg"],
