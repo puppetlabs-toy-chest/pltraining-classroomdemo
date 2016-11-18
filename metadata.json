@@ -24,5 +24,7 @@
   "project_page": "https://github.com/puppetlabs/pltraining-classroomdemo",
   "issues_url": "https://github.com/puppetlabs/pltraining-classroomdemo/issues",
   "description": "Important! This is not the module you are looking for\n    unless you are a trainer teaching Puppet Labs training courses!",
-  "dependencies": [ ]
+  "dependencies": [
+    {"name":"puppetlabs/aws"}
+ ]
 }

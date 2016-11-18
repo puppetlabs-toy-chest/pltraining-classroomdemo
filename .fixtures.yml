@@ -1,0 +1,10 @@
+fixtures:
+  symlinks:
+    classroomdemo: "#{source_dir}"
+  forge_modules:
+    stdlib:
+      repo: "puppetlabs/stdlib"
+      ref: "4.12.0"
+    aws:
+      repo: "puppetlabs/aws"
+      ref: "1.4.0"
