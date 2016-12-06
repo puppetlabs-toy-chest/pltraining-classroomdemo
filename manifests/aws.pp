@@ -2,7 +2,7 @@ class classroomdemo::aws (
   $creator,
   $key_pair,
   $ensure      = present,
-  $pe_version  = '2015.2.0',
+  $pe_version  = '2016.2.1',
   $pe_username = 'admin',
   $pe_password = 'puppetlabs',
   $aws_region  = 'us-west-2',
@@ -20,48 +20,53 @@ class classroomdemo::aws (
     'sa-east-1'      => 'ami-5fc76a42',
   }
 
-  # Set up the VPC and network
-  ec2_vpc { "${creator}-vpc":
-    ensure       => $ensure,
-    region       => $aws_region,
-    cidr_block   => '10.0.0.0/16',
-  }
-
-  ec2_vpc_subnet { "${creator}-subnet":
-    ensure            => $ensure,
-    region            => $aws_region,
-    vpc               => "${creator}-vpc",
-    cidr_block        => '10.0.0.0/24',
-    route_table       => "${creator}-routes",
-  }
-
-  ec2_vpc_internet_gateway { "${creator}-igw":
-    ensure => $ensure,
-    region => $aws_region,
-    vpc    => "${creator}-vpc",
-  }
-
-  ec2_vpc_routetable { "${creator}-routes":
-    ensure => $ensure,
-    region => $aws_region,
-    vpc    => "${creator}-vpc",
-    routes => [
-      {
-        destination_cidr_block => '10.0.0.0/16',
-        gateway                => 'local'
-        },{
-          destination_cidr_block => '0.0.0.0/0',
-          gateway                => "${creator}-igw"
-        },
-    ],
-  }
+  # The following code can be used to set up a VPC and networking
+  # Leaving this commented out since when creating a VPC, you need
+  # to wait for the VPC creation to be complete before moving forward
+  # etc.
+  #
+  #  ec2_vpc { "${creator}-vpc":
+  #    ensure       => $ensure,
+  #    region       => $aws_region,
+  #    cidr_block   => '10.0.0.0/16',
+  #  }
+  #
+  #  #ec2_vpc_subnet { "${creator}-subnet":
+  #  #  ensure            => $ensure,
+  #  #  region            => $aws_region,
+  #  #  vpc               => "${creator}-vpc",
+  #  #  cidr_block        => '10.0.0.0/24',
+  #  #  route_table       => "${creator}-routes",
+  #  #}
+  #
+  #  ec2_vpc_internet_gateway { "${creator}-igw":
+  #    ensure => $ensure,
+  #    region => $aws_region,
+  #    vpc    => "${creator}-vpc",
+  #  }
+  #
+  #  ec2_vpc_routetable { "${creator}-routes":
+  #    ensure => $ensure,
+  #    region => $aws_region,
+  #    vpc    => "${creator}-vpc",
+  #    routes => [
+  #      {
+  #        destination_cidr_block => '10.0.0.0/16',
+  #        gateway                => 'local'
+  #        },{
+  #          destination_cidr_block => '0.0.0.0/0',
+  #          gateway                => "${creator}-igw"
+  #        },
+  #        ],
+  #    }
 
 
   # Security group (autorequires vpc as needed)
   ec2_securitygroup { "${creator}-sg":
     ensure      => $ensure,
     region      => $aws_region,
-    vpc         => "${creator}-vpc",
+    # uncomment the following if creating VPC:
+    # vpc         => "${creator}-vpc",
     description => 'Security group for VPC',
     ingress     => [{
       protocol => 'tcp',
@@ -84,7 +89,8 @@ class classroomdemo::aws (
     instance_type               => 'm3.medium',
     key_name                    => $key_pair,
     security_groups             => ["${creator}-sg"],
-    subnet                      => "${creator}-subnet",
+    # Uncomment the following if creating VPC, subnet:
+    # subnet                      => "${creator}-subnet",
     monitoring                  => 'true',
     user_data                   => template("${module_name}/aws/master-pe-userdata.erb"),
   }
@@ -95,13 +101,14 @@ class classroomdemo::aws (
     }
     absent: {
       Ec2_instance["${creator}-puppet-master"]   -> Ec2_securitygroup["${creator}-sg"]
-      Ec2_instance["${creator}-puppet-master"]   -> Ec2_vpc_subnet["${creator}-subnet"]
-      Ec2_securitygroup["${creator}-sg"]         -> Ec2_vpc["${creator}-vpc"]
-      Ec2_vpc_subnet["${creator}-subnet"]        -> Ec2_vpc["${creator}-vpc"]
-      Ec2_vpc_subnet["${creator}-subnet"]        -> Ec2_vpc_routetable["${creator}-routes"]
-      Ec2_vpc_routetable["${creator}-routes"]    -> Ec2_vpc_internet_gateway["${creator}-igw"]
-      Ec2_vpc_routetable["${creator}-routes"]    -> Ec2_vpc["${creator}-vpc"]
-      Ec2_vpc_internet_gateway["${creator}-igw"] -> Ec2_vpc["${creator}-vpc"]
+# Uncomment the following if creating VPC.
+#      Ec2_instance["${creator}-puppet-master"]   -> Ec2_vpc_subnet["${creator}-subnet"]
+#      Ec2_securitygroup["${creator}-sg"]         -> Ec2_vpc["${creator}-vpc"]
+#      Ec2_vpc_subnet["${creator}-subnet"]        -> Ec2_vpc["${creator}-vpc"]
+#      Ec2_vpc_subnet["${creator}-subnet"]        -> Ec2_vpc_routetable["${creator}-routes"]
+#      Ec2_vpc_routetable["${creator}-routes"]    -> Ec2_vpc_internet_gateway["${creator}-igw"]
+#      Ec2_vpc_routetable["${creator}-routes"]    -> Ec2_vpc["${creator}-vpc"]
+#      Ec2_vpc_internet_gateway["${creator}-igw"] -> Ec2_vpc["${creator}-vpc"]
     }
     default: {
       fail("Ensure must be one of absent, present. Got ${ensure}.")
