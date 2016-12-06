@@ -8,17 +8,17 @@
   "requirements": [
     {
       "name": "pe",
-      "version_requirement": "3.7.x"
+      "version_requirement": ">=3.7.0 < 2015.4.0"
     },
     {
       "name": "puppet",
-      "version_requirement": "3.x"
+      "version_requirement": ">= 3.3.0"
     }
   ],
   "name": "pltraining-classroomdemo",
-  "version": "0.0.3",
+  "version": "0.0.4",
   "author": "pltraining",
-  "summary": "Just a collections of classroom demos",
+  "summary": "Just a collection of classroom demos",
   "license": "Apache 2.0",
   "source": "https://github.com/puppetlabs/pltraining-classroomdemo",
   "project_page": "https://github.com/puppetlabs/pltraining-classroomdemo",
